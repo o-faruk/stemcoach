@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEM Study Coach — Ace Your Exams</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F7F4EE;
+      --ink: #1A1814;
+      --ink2: #4A4640;
+      --accent: #2A5FD4;
+      --accent-light: #EBF0FC;
+      --green: #1A7A50;
+      --green-light: #E6F4EE;
+      --border: rgba(26,24,20,0.12);
+      --card-bg: #FFFFFF;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--cream);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .logo span { color: var(--accent); }
+
+    nav a {
+      color: var(--ink2);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    .btn-primary:hover { background: #333; }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--ink);
+    }
+
+    .btn-outline:hover { border-color: var(--ink2); }
+
+    .btn-lg {
+      padding: 0.85rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+    }
+
+    /* Hero */
+    .hero {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 5rem 2rem 4rem;
+      text-align: center;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.35rem 0.9rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.25rem;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--ink2);
+      max-width: 520px;
+      margin: 0 auto 2.5rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge-free {
+      font-size: 0.78rem;
+      color: var(--ink2);
+      margin-top: 0.75rem;
+      display: block;
+    }
+
+    /* Steps */
+    .section {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink2);
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      letter-spacing: -0.025em;
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .step {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      background: var(--ink);
+      color: var(--cream);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .step h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .step p {
+      font-size: 0.88rem;
+      color: var(--ink2);
+      line-height: 1.55;
+    }
+
+    /* Pricing */
+    .pricing {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 4rem 2rem;
+    }
+
+    .pricing-inner {
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .pricing h2 { color: var(--cream); margin-bottom: 2.5rem; }
+
+    .pricing-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      text-align: left;
+    }
+
+    @media (max-width: 540px) {
+      .pricing-cards { grid-template-columns: 1fr; }
+    }
+
+    .pricing-card {
+      border: 1px solid rgba(247,244,238,0.15);
+      border-radius: 12px;
+      padding: 1.75rem;
+    }
+
+    .pricing-card.featured {
+      border-color: var(--accent);
+      background: rgba(42,95,212,0.12);
+    }
+
+    .plan-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      opacity: 0.6;
+      margin-bottom: 0.6rem;
+    }
+
+    .price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.5rem;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .price-note { font-size: 0.82rem; opacity: 0.5; margin-bottom: 1.25rem; }
+
+    .features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .features li {
+      font-size: 0.88rem;
+      opacity: 0.8;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .features li::before {
+      content: '✓';
+      color: #5CE8A2;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .btn-cream {
+      background: var(--cream);
+      color: var(--ink);
+      margin-top: 2rem;
+    }
+    .btn-cream:hover { background: #ede9e0; }
+
+    /* Footer */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--ink2);
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">STEM<span>Coach</span></div>
+    <div style="display:flex; gap:1rem; align-items:center;">
+      <a href="#pricing">Pricing</a>
+      <a href="/dashboard" class="btn btn-outline">Log in</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <span class="eyebrow">AI-powered study planning</span>
+    <h1>Stop studying hard.<br>Start studying <em>smart.</em></h1>
+    <p>Upload your syllabus, take a 10-minute diagnostic, and get a personalized day-by-day study plan built around your actual weak spots.</p>
+    <div class="hero-cta">
+      <a href="/dashboard" class="btn btn-primary btn-lg">Get my free study plan →</a>
+    </div>
+    <span class="badge-free">Free plan available — no credit card required</span>
+  </section>
+
+  <section class="section">
+    <p class="section-label">How it works</p>
+    <h2>Three steps to your study plan</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Upload your syllabus</h3>
+        <p>Drop in a PDF or paste your course outline. We extract every topic and weight them by difficulty.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Take the diagnostic</h3>
+        <p>10 questions across your course topics. Takes about 10 minutes. We find exactly where you're shaky.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Get your plan</h3>
+        <p>A day-by-day schedule built around your weak spots, with specific tasks and time estimates for each session.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <div class="pricing-inner">
+      <h2>Simple pricing</h2>
+      <div class="pricing-cards">
+        <div class="pricing-card">
+          <p class="plan-name">Free</p>
+          <div class="price">$0</div>
+          <p class="price-note">forever</p>
+          <ul class="features">
+            <li>1 study plan</li>
+            <li>Syllabus text input</li>
+            <li>Diagnostic quiz</li>
+          </ul>
+        </div>
+        <div class="pricing-card featured">
+          <p class="plan-name">Pro ⭐</p>
+          <div class="price">$9</div>
+          <p class="price-note">per month</p>
+          <ul class="features">
+            <li>Unlimited study plans</li>
+            <li>PDF syllabus uploads</li>
+            <li>Retake diagnostics anytime</li>
+            <li>Exam date countdown mode</li>
+          </ul>
+        </div>
+      </div>
+      <a href="/dashboard" class="btn btn-cream btn-lg">Start free →</a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 STEMCoach. Built for students, by a student.</p>
+  </footer>
+
+</body>
+</html>
