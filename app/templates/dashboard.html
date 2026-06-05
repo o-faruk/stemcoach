@@ -3,22 +3,817 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — STEMCoach</title>
+  <title>STEMCoach — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'DM Sans', sans-serif; background: #F7F4EE; color: #1A1814; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-    .card { background: white; border: 1px solid rgba(26,24,20,0.12); border-radius: 12px; padding: 3rem; text-align: center; max-width: 420px; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.75rem; }
-    p { color: #4A4640; font-size: 0.95rem; margin-bottom: 1.5rem; }
-    .btn { display: inline-block; padding: 0.7rem 1.5rem; background: #1A1814; color: #F7F4EE; border-radius: 7px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #F7F4EE;
+      --ink: #1A1814;
+      --ink2: #4A4640;
+      --accent: #2A5FD4;
+      --accent-light: #EBF0FC;
+      --green: #1A7A50;
+      --green-light: #E6F4EE;
+      --red: #C0392B;
+      --red-light: #FDECEA;
+      --border: rgba(26,24,20,0.12);
+      --card: #FFFFFF;
+      --shadow: 0 2px 16px rgba(26,24,20,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--cream);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo { font-family: 'DM Serif Display', serif; font-size: 1.25rem; }
+    .logo span { color: var(--accent); }
+    .nav-right { display: flex; gap: 1rem; align-items: center; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.25rem;
+      border-radius: 7px;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--ink); color: var(--cream); }
+    .btn-primary:hover { background: #333; }
+    .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--ink); }
+    .btn-outline:hover { border-color: var(--ink2); }
+    .btn-accent { background: var(--accent); color: white; }
+    .btn-accent:hover { background: #1e4fb0; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* MAIN LAYOUT */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    /* STEP INDICATOR */
+    .steps-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 3rem;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex: 1;
+    }
+    .step-item:not(:last-child)::after {
+      content: '';
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 0.5rem;
+      transition: background 0.3s;
+    }
+    .step-item.done:not(:last-child)::after { background: var(--accent); }
+    .step-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.3s;
+      background: var(--cream);
+      color: var(--ink2);
+    }
+    .step-item.active .step-dot {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: white;
+    }
+    .step-item.done .step-dot {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    .step-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--ink2);
+      white-space: nowrap;
+    }
+    .step-item.active .step-label { color: var(--ink); font-weight: 600; }
+
+    /* PANELS */
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .panel-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .panel-sub {
+      color: var(--ink2);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* UPLOAD */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: var(--accent-light); }
+    .upload-zone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+    .upload-zone h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .upload-zone p { font-size: 0.85rem; color: var(--ink2); }
+    .upload-or {
+      text-align: center;
+      color: var(--ink2);
+      font-size: 0.82rem;
+      margin: 1.25rem 0;
+      position: relative;
+    }
+    .upload-or::before, .upload-or::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background: var(--border);
+    }
+    .upload-or::before { left: 0; }
+    .upload-or::after { right: 0; }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ink);
+      background: var(--cream);
+      resize: vertical;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    textarea:focus { border-color: var(--accent); }
+
+    .file-selected {
+      display: none;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: var(--green-light);
+      border: 1px solid rgba(26,122,80,0.2);
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--green);
+    }
+
+    .action-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5rem;
+    }
+
+    /* SPINNER */
+    .spinner {
+      display: none;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading .spinner { display: block; }
+    .loading .btn-text { display: none; }
+
+    /* TOPICS LIST */
+    .topics-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1.25rem 0;
+    }
+    .topic-tag {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      background: var(--accent-light);
+      color: var(--accent);
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .difficulty-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+    }
+    .diff-low { background: var(--green); }
+    .diff-medium { background: #E67E22; }
+    .diff-high { background: var(--red); }
+
+    /* QUIZ */
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .question-num {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink2);
+      margin-bottom: 0.5rem;
+    }
+    .question-text {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .options { display: flex; flex-direction: column; gap: 0.5rem; }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.7rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.9rem;
+    }
+    .option:hover { border-color: var(--accent); background: var(--accent-light); }
+    .option input[type=radio] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; }
+    .option.selected { border-color: var(--accent); background: var(--accent-light); }
+    .option.correct { border-color: var(--green); background: var(--green-light); }
+    .option.wrong { border-color: var(--red); background: var(--red-light); }
+
+    /* PROGRESS BAR */
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 2rem;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    /* SCORE */
+    .score-hero {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .score-circle {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--accent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+    .score-num { font-family: 'DM Serif Display', serif; font-size: 2.5rem; line-height: 1; color: var(--accent); }
+    .score-label { font-size: 0.75rem; color: var(--ink2); }
+    .weak-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin: 1rem 0;
+    }
+    .weak-tag {
+      padding: 0.35rem 0.85rem;
+      background: var(--red-light);
+      color: var(--red);
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+
+    /* STUDY PLAN */
+    .plan-summary {
+      padding: 1.25rem;
+      background: var(--accent-light);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      color: var(--ink);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .day-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      background: var(--card);
+      cursor: pointer;
+      user-select: none;
+    }
+    .day-header:hover { background: #fafaf8; }
+    .day-title { font-weight: 600; font-size: 0.95rem; }
+    .day-meta { font-size: 0.82rem; color: var(--ink2); }
+    .day-chevron { color: var(--ink2); transition: transform 0.2s; font-size: 0.85rem; }
+    .day-card.open .day-chevron { transform: rotate(180deg); }
+    .day-body {
+      display: none;
+      padding: 0 1.25rem 1.25rem;
+      border-top: 1px solid var(--border);
+      background: var(--card);
+    }
+    .day-card.open .day-body { display: block; }
+    .day-goal {
+      padding: 0.75rem;
+      background: var(--green-light);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--green);
+      margin: 1rem 0 0.75rem;
+      font-weight: 500;
+    }
+    .task-list { display: flex; flex-direction: column; gap: 0.5rem; }
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.87rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-type {
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .type-lecture { background: #EEF2FF; color: #4F46E5; }
+    .type-practice { background: #FFF7ED; color: #C2410C; }
+    .type-review { background: var(--green-light); color: var(--green); }
+    .type-reading { background: #F5F3FF; color: #7C3AED; }
+    .task-mins { color: var(--ink2); font-size: 0.8rem; flex-shrink: 0; margin-left: auto; padding-left: 0.5rem; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--ink);
+      color: var(--cream);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 600px) {
+      main { padding: 1.5rem 1rem; }
+      .step-label { display: none; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Dashboard coming soon</h1>
-    <p>This is where your study plans will live. Wire up Supabase auth and then build this out.</p>
-    <a href="/" class="btn">← Back to home</a>
+
+<nav>
+  <div class="logo">STEM<span>Coach</span></div>
+  <div class="nav-right">
+    <a href="/" class="btn btn-outline">← Home</a>
   </div>
+</nav>
+
+<main>
+  <!-- STEP INDICATOR -->
+  <div class="steps-bar">
+    <div class="step-item active" id="step-indicator-1">
+      <div class="step-dot">1</div>
+      <span class="step-label">Upload Syllabus</span>
+    </div>
+    <div class="step-item" id="step-indicator-2">
+      <div class="step-dot">2</div>
+      <span class="step-label">Diagnostic Quiz</span>
+    </div>
+    <div class="step-item" id="step-indicator-3">
+      <div class="step-dot">3</div>
+      <span class="step-label">Study Plan</span>
+    </div>
+  </div>
+
+  <!-- PANEL 1: UPLOAD -->
+  <div class="panel active" id="panel-1">
+    <h1 class="panel-title">Upload your syllabus</h1>
+    <p class="panel-sub">We'll extract your course topics and build a quiz around them.</p>
+    <div class="card">
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="file-input" accept=".pdf" />
+        <div class="upload-icon">📄</div>
+        <h3>Drop your syllabus PDF here</h3>
+        <p>or click to browse</p>
+      </div>
+      <div class="file-selected" id="file-selected">
+        ✓ <span id="file-name"></span>
+      </div>
+      <div class="upload-or">or paste your syllabus text</div>
+      <textarea id="syllabus-text" placeholder="Paste course outline, topics, or syllabus text here..."></textarea>
+      <div class="action-row">
+        <button class="btn btn-accent" id="upload-btn" onclick="uploadSyllabus()">
+          <span class="btn-text">Analyze Syllabus →</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: QUIZ -->
+  <div class="panel" id="panel-2">
+    <h1 class="panel-title">Diagnostic quiz</h1>
+    <p class="panel-sub" id="quiz-sub">10 questions to find your weak spots.</p>
+    <div class="progress-bar"><div class="progress-fill" id="quiz-progress" style="width:0%"></div></div>
+    <div id="quiz-container"></div>
+    <div class="action-row" style="margin-top:0">
+      <button class="btn btn-accent" id="submit-quiz-btn" onclick="submitQuiz()" disabled>
+        <span class="btn-text">See My Results →</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+
+  <!-- PANEL 2b: SCORE -->
+  <div class="panel" id="panel-score">
+    <h1 class="panel-title">Your results</h1>
+    <p class="panel-sub">Here's where you stand — and where to focus.</p>
+    <div class="card">
+      <div class="score-hero">
+        <div class="score-circle">
+          <span class="score-num" id="score-num">0</span>
+          <span class="score-label">out of 10</span>
+        </div>
+        <p style="font-weight:600; margin-bottom:0.5rem;" id="score-message"></p>
+        <p style="font-size:0.88rem; color:var(--ink2); margin-bottom:1rem;" id="weak-label"></p>
+        <div class="weak-list" id="weak-list"></div>
+      </div>
+      <div class="action-row" style="justify-content:center; gap:0.75rem;">
+        <button class="btn btn-outline" onclick="retakeQuiz()">Retake Quiz</button>
+        <button class="btn btn-accent" id="gen-plan-btn" onclick="generatePlan()">
+          <span class="btn-text">Build My Study Plan →</span>
+          <div class="spinner"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: STUDY PLAN -->
+  <div class="panel" id="panel-3">
+    <h1 class="panel-title">Your study plan</h1>
+    <p class="panel-sub" id="plan-sub"></p>
+    <div class="plan-summary" id="plan-summary"></div>
+    <div id="plan-container"></div>
+    <div class="action-row" style="margin-top:1.5rem;">
+      <button class="btn btn-outline" onclick="startOver()">Start Over</button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  let state = {
+    topics: [],
+    courseName: '',
+    questions: [],
+    answers: {},
+    weakTopics: [],
+    score: 0,
+  };
+
+  // Helpers
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) btn.classList.add('loading');
+    else btn.classList.remove('loading');
+    btn.disabled = loading;
+  }
+
+  function goToStep(step) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.step-item').forEach((s, i) => {
+      s.classList.remove('active', 'done');
+      if (i + 1 < step) s.classList.add('done');
+      if (i + 1 === step) s.classList.add('active');
+    });
+    const panelId = step === 2 ? 'panel-2' : step === 99 ? 'panel-score' : `panel-${step}`;
+    document.getElementById(panelId).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // FILE UPLOAD
+  const fileInput = document.getElementById('file-input');
+  const uploadZone = document.getElementById('upload-zone');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) {
+      document.getElementById('file-name').textContent = fileInput.files[0].name;
+      document.getElementById('file-selected').style.display = 'flex';
+    }
+  });
+
+  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+  uploadZone.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadZone.classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') {
+      fileInput.files = e.dataTransfer.files;
+      document.getElementById('file-name').textContent = file.name;
+      document.getElementById('file-selected').style.display = 'flex';
+    }
+  });
+
+  // STEP 1: Upload syllabus
+  async function uploadSyllabus() {
+    const file = fileInput.files[0];
+    const text = document.getElementById('syllabus-text').value.trim();
+    if (!file && !text) { showToast('Please upload a PDF or paste some text.'); return; }
+
+    setLoading('upload-btn', true);
+    try {
+      const formData = new FormData();
+      if (file) formData.append('file', file);
+      if (text) formData.append('text', text);
+
+      const res = await fetch('/study-plan/upload-syllabus', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      const data = await res.json();
+
+      state.topics = data.topics;
+      state.courseName = data.course_name;
+
+      await generateQuiz();
+    } catch (e) {
+      showToast('Something went wrong. Try again.');
+      setLoading('upload-btn', false);
+    }
+  }
+
+  // STEP 2: Generate quiz
+  async function generateQuiz() {
+    const topicNames = state.topics.map(t => t.name);
+    const formData = new URLSearchParams();
+    formData.append('course_name', state.courseName);
+    formData.append('topics', JSON.stringify(topicNames));
+
+    const res = await fetch('/quiz/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+    });
+    if (!res.ok) throw new Error('Quiz generation failed');
+    const data = await res.json();
+    state.questions = data.questions;
+    state.answers = {};
+
+    renderQuiz();
+    setLoading('upload-btn', false);
+    goToStep(2);
+  }
+
+  function renderQuiz() {
+    document.getElementById('quiz-sub').textContent =
+      `${state.questions.length} questions on ${state.courseName} — find your weak spots.`;
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+    state.questions.forEach((q, i) => {
+      container.innerHTML += `
+        <div class="question-card" id="qcard-${q.id}">
+          <div class="question-num">Question ${i + 1} of ${state.questions.length} · ${q.topic}</div>
+          <div class="question-text">${q.question}</div>
+          <div class="options">
+            ${q.options.map(opt => {
+              const letter = opt.charAt(0);
+              return `<label class="option" id="opt-${q.id}-${letter}">
+                <input type="radio" name="q${q.id}" value="${letter}" onchange="selectAnswer(${q.id}, '${letter}')">
+                ${opt}
+              </label>`;
+            }).join('')}
+          </div>
+        </div>`;
+    });
+    updateQuizProgress();
+  }
+
+  function selectAnswer(qid, letter) {
+    state.answers[qid] = letter;
+    // Highlight selected
+    state.questions.find(q => q.id === qid).options.forEach(opt => {
+      const l = opt.charAt(0);
+      const el = document.getElementById(`opt-${qid}-${l}`);
+      el.classList.toggle('selected', l === letter);
+    });
+    updateQuizProgress();
+  }
+
+  function updateQuizProgress() {
+    const answered = Object.keys(state.answers).length;
+    const total = state.questions.length;
+    document.getElementById('quiz-progress').style.width = `${(answered / total) * 100}%`;
+    document.getElementById('submit-quiz-btn').disabled = answered < total;
+  }
+
+  // STEP 2b: Score quiz
+  async function submitQuiz() {
+    setLoading('submit-quiz-btn', true);
+    const formData = new URLSearchParams();
+    formData.append('questions', JSON.stringify(state.questions));
+    formData.append('answers', JSON.stringify(
+      Object.fromEntries(Object.entries(state.answers).map(([k, v]) => [k, v]))
+    ));
+
+    const res = await fetch('/quiz/score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+    });
+    const data = await res.json();
+    state.score = data.score;
+    state.weakTopics = data.weak_topics;
+
+    renderScore(data);
+    setLoading('submit-quiz-btn', false);
+    goToStep(99);
+  }
+
+  function renderScore(data) {
+    document.getElementById('score-num').textContent = data.score;
+    const pct = data.percentage;
+    let msg = pct >= 80 ? '🎉 Great foundation!' : pct >= 60 ? '📚 Solid start — a few gaps to fill.' : '💪 Lots to work on — we\'ve got you covered.';
+    document.getElementById('score-message').textContent = msg;
+
+    const weakList = document.getElementById('weak-list');
+    if (data.weak_topics.length > 0) {
+      document.getElementById('weak-label').textContent = 'Focus areas identified:';
+      weakList.innerHTML = data.weak_topics.map(t => `<span class="weak-tag">${t}</span>`).join('');
+    } else {
+      document.getElementById('weak-label').textContent = 'No major weak spots — you\'re solid across the board!';
+    }
+  }
+
+  function retakeQuiz() {
+    state.answers = {};
+    renderQuiz();
+    goToStep(2);
+  }
+
+  // STEP 3: Generate study plan
+  async function generatePlan() {
+    setLoading('gen-plan-btn', true);
+    const formData = new URLSearchParams();
+    formData.append('course_name', state.courseName);
+    formData.append('topics', JSON.stringify(state.topics));
+    formData.append('weak_topics', JSON.stringify(state.weakTopics));
+    formData.append('days_available', '14');
+    formData.append('hours_per_day', '2');
+
+    const res = await fetch('/study-plan/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData,
+    });
+    const data = await res.json();
+    renderPlan(data);
+    setLoading('gen-plan-btn', false);
+    goToStep(3);
+  }
+
+  function renderPlan(data) {
+    document.getElementById('plan-sub').textContent =
+      `${data.days.length}-day plan for ${state.courseName} · ${data.total_hours}h total`;
+    document.getElementById('plan-summary').textContent = data.summary;
+
+    const typeClass = { lecture: 'type-lecture', practice: 'type-practice', review: 'type-review', reading: 'type-reading' };
+
+    document.getElementById('plan-container').innerHTML = data.days.map((day, i) => `
+      <div class="day-card" id="day-${i}">
+        <div class="day-header" onclick="toggleDay(${i})">
+          <div>
+            <div class="day-title">Day ${day.day} · ${day.focus_topic}</div>
+            <div class="day-meta">${day.hours}h · ${day.tasks.length} tasks</div>
+          </div>
+          <span class="day-chevron">▾</span>
+        </div>
+        <div class="day-body">
+          <div class="day-goal">🎯 Goal: ${day.goal}</div>
+          <div class="task-list">
+            ${day.tasks.map(task => `
+              <div class="task-item">
+                <span class="task-type ${typeClass[task.resource_type] || 'type-review'}">${task.resource_type}</span>
+                <span>${task.task}</span>
+                <span class="task-mins">${task.duration_minutes}m</span>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>`).join('');
+
+    // Open first day by default
+    toggleDay(0);
+  }
+
+  function toggleDay(i) {
+    document.getElementById(`day-${i}`).classList.toggle('open');
+  }
+
+  function startOver() {
+    state = { topics: [], courseName: '', questions: [], answers: {}, weakTopics: [], score: 0 };
+    document.getElementById('file-input').value = '';
+    document.getElementById('syllabus-text').value = '';
+    document.getElementById('file-selected').style.display = 'none';
+    goToStep(1);
+  }
+</script>
 </body>
 </html>
