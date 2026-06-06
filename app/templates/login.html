@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STEMCoach — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream: #F7F4EE;
+      --ink: #1A1814;
+      --ink2: #4A4640;
+      --accent: #2A5FD4;
+      --accent-light: #EBF0FC;
+      --border: rgba(26,24,20,0.12);
+      --red: #C0392B;
+      --red-light: #FDECEA;
+    }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'DM Serif Display', serif; font-size: 1.25rem; text-decoration: none; color: var(--ink); }
+    .logo span { color: var(--accent); }
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 2px 20px rgba(26,24,20,0.07);
+    }
+    .card-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.35rem;
+    }
+    .card-sub {
+      font-size: 0.88rem;
+      color: var(--ink2);
+      margin-bottom: 2rem;
+    }
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.75rem;
+    }
+    .tab {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      color: var(--ink2);
+      transition: all 0.15s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .form { display: none; flex-direction: column; gap: 1rem; }
+    .form.active { display: flex; }
+    label { font-size: 0.82rem; font-weight: 600; display: block; margin-bottom: 0.35rem; }
+    input[type=email], input[type=password] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: var(--accent); }
+    .btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--ink);
+      color: var(--cream);
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn:hover { background: #333; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .error-box {
+      display: none;
+      padding: 0.75rem 1rem;
+      background: var(--red-light);
+      border: 1px solid rgba(192,57,43,0.2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--red);
+    }
+    .success-box {
+      display: none;
+      padding: 0.75rem 1rem;
+      background: #E6F4EE;
+      border: 1px solid rgba(26,122,80,0.2);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #1A7A50;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">STEM<span>Coach</span></a>
+</nav>
+<main>
+  <div class="card">
+    <h1 class="card-title">Welcome back</h1>
+    <p class="card-sub">Sign in to access your study plans.</p>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Sign In</div>
+      <div class="tab" onclick="switchTab('signup')">Create Account</div>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div class="form active" id="login-form">
+      <div class="error-box" id="login-error"></div>
+      <div>
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@university.edu" />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="login-btn" onclick="login()">
+        <span id="login-btn-text">Sign In →</span>
+        <div class="spinner" id="login-spinner"></div>
+      </button>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div class="form" id="signup-form">
+      <div class="error-box" id="signup-error"></div>
+      <div class="success-box" id="signup-success"></div>
+      <div>
+        <label>Email</label>
+        <input type="email" id="signup-email" placeholder="you@university.edu" />
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="At least 6 characters" />
+      </div>
+      <button class="btn" id="signup-btn" onclick="signup()">
+        <span id="signup-btn-text">Create Account →</span>
+        <div class="spinner" id="signup-spinner"></div>
+      </button>
+    </div>
+  </div>
+</main>
+
+<script>
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'signup'));
+    });
+    document.getElementById('login-form').classList.toggle('active', tab === 'login');
+    document.getElementById('signup-form').classList.toggle('active', tab === 'signup');
+  }
+
+  function setLoading(type, loading) {
+    document.getElementById(`${type}-btn`).disabled = loading;
+    document.getElementById(`${type}-btn-text`).style.display = loading ? 'none' : 'inline';
+    document.getElementById(`${type}-spinner`).style.display = loading ? 'block' : 'none';
+  }
+
+  function showError(type, msg) {
+    const el = document.getElementById(`${type}-error`);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function login() {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { showError('login', 'Please fill in all fields.'); return; }
+
+    setLoading('login', true);
+    document.getElementById('login-error').style.display = 'none';
+
+    try {
+      const res = await fetch('/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Login failed.');
+
+      localStorage.setItem('access_token', data.access_token);
+      localStorage.setItem('user_email', data.email);
+      window.location.href = '/dashboard';
+    } catch (e) {
+      showError('login', e.message);
+      setLoading('login', false);
+    }
+  }
+
+  async function signup() {
+    const email = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if (!email || !password) { showError('signup', 'Please fill in all fields.'); return; }
+    if (password.length < 6) { showError('signup', 'Password must be at least 6 characters.'); return; }
+
+    setLoading('signup', true);
+    document.getElementById('signup-error').style.display = 'none';
+
+    try {
+      const res = await fetch('/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Signup failed.');
+
+      document.getElementById('signup-success').textContent = data.message;
+      document.getElementById('signup-success').style.display = 'block';
+      setLoading('signup', false);
+    } catch (e) {
+      showError('signup', e.message);
+      setLoading('signup', false);
+    }
+  }
+
+  // Allow Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const activeForm = document.querySelector('.form.active').id;
+      if (activeForm === 'login-form') login();
+      else signup();
+    }
+  });
+
+  // Redirect if already logged in
+  if (localStorage.getItem('access_token')) {
+    window.location.href = '/dashboard';
+  }
+</script>
+</body>
+</html>
