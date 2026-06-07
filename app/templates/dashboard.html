@@ -830,6 +830,37 @@
     document.getElementById('file-selected').style.display = 'none';
     goToStep(1);
   }
+
+  async function updateNav() {
+    let badge = '<button class="btn btn-accent" onclick="upgrade()" style="padding:0.45rem 1rem;font-size:0.82rem;">Upgrade $9/mo</button>';
+    try {
+      const res = await fetch('/billing/status', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.is_pro) {
+        badge = '<span style="background:#2A5FD4;color:white;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">PRO</span>';
+      }
+    } catch(e) {}
+    document.querySelector('.nav-right').innerHTML =
+      '<span style="font-size:0.85rem;color:var(--ink2);">' + (userEmail || '') + '</span>' +
+      badge +
+      '<button class="btn btn-outline" onclick="logout()">Log out</button>';
+  }
+  document.addEventListener('DOMContentLoaded', updateNav);
+
+  async function upgrade() {
+    try {
+      const res = await fetch('/billing/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+      if (data.checkout_url) window.location.href = data.checkout_url;
+    } catch(e) {
+      showToast('Something went wrong. Try again.');
+    }
+  }
 </script>
 </body>
 </html>
