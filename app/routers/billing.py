@@ -27,9 +27,12 @@ async def create_checkout_session(request: Request):
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated.")
     try:
-        user = supabase.auth.get_user(token)
-        email = user.user.email
-        user_id = str(user.user.id)
+        import base64, json
+        payload = token.split(".")[1]
+        payload += "=" * (4 - len(payload) % 4)
+        data = json.loads(base64.b64decode(payload))
+        user_id = data["sub"]
+        email = data["email"]
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token.")
 
@@ -94,10 +97,13 @@ async def subscription_status(request: Request):
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated.")
     try:
-        user = supabase.auth.get_user(token)
-        user_id = str(user.user.id)
+        import base64, json
+        payload = token.split(".")[1]
+        payload += "=" * (4 - len(payload) % 4)
+        data = json.loads(base64.b64decode(payload))
+        user_id = data["sub"]
         result = supabase_admin.table("profiles").select("is_pro").eq("id", user_id).execute()
         is_pro = result.data[0]["is_pro"] if result.data else False
         return JSONResponse(content={"is_pro": is_pro})
     except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid token.")
+        raise HTTPException(status_code=401, detail=str(e))
