@@ -15,6 +15,11 @@ supabase = create_client(
     os.getenv("SUPABASE_ANON_KEY")
 )
 
+supabase_admin = create_client(
+    os.getenv("SUPABASE_URL"),
+    os.getenv("SUPABASE_SERVICE_KEY")
+)
+
 
 @router.post("/create-checkout-session")
 async def create_checkout_session(request: Request):
@@ -62,20 +67,20 @@ async def stripe_webhook(request: Request):
         email = customer.get("email")
         if email:
             # Mark user as pro in Supabase
-            users = supabase.auth.admin.list_users()
+            users = supabase_admin.auth.admin.list_users()
             for u in users:
                 if u.email == email:
-                    supabase.table("profiles").update({
+                    supabase_admin.table("profiles").update({
                         "is_pro": True,
                         "stripe_customer_id": customer_id,
                         "stripe_subscription_id": sub["id"]
-                    }).eq("id", str(u.id)).execute()
+                                }).eq("id", str(u.id)).execute()
                     break
 
     elif event["type"] == "customer.subscription.deleted":
         sub = event["data"]["object"]
         customer_id = sub["customer"]
-        supabase.table("profiles").update({
+        supabase_admin.table("profiles").update({
             "is_pro": False,
             "stripe_subscription_id": None
         }).eq("stripe_customer_id", customer_id).execute()
@@ -91,7 +96,7 @@ async def subscription_status(request: Request):
     try:
         user = supabase.auth.get_user(token)
         user_id = str(user.user.id)
-        result = supabase.table("profiles").select("is_pro").eq("id", user_id).execute()
+        result = supabase_admin.table("profiles").select("is_pro").eq("id", user_id).execute()
         is_pro = result.data[0]["is_pro"] if result.data else False
         return JSONResponse(content={"is_pro": is_pro})
     except Exception as e:
