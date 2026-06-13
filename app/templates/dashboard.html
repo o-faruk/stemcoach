@@ -478,23 +478,46 @@
 
   <!-- PANEL 1: UPLOAD -->
   <div class="panel active" id="panel-1">
-    <h1 class="panel-title">Upload your syllabus</h1>
-    <p class="panel-sub">We'll extract your course topics and build a quiz around them.</p>
+    <h1 class="panel-title">Let's build your study plan</h1>
+    <p class="panel-sub">Upload your syllabus or a past exam — we'll do the rest.</p>
+
+    <!-- Mode selector -->
+    <div style="display:flex;gap:1rem;margin-bottom:1.5rem;">
+      <div id="mode-syllabus" onclick="setMode('syllabus')" style="flex:1;padding:1.25rem;border:2px solid var(--accent);border-radius:10px;cursor:pointer;background:var(--accent-light);">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem;">📄</div>
+        <div style="font-weight:600;font-size:0.95rem;">Syllabus</div>
+        <div style="font-size:0.82rem;color:var(--ink2);margin-top:0.25rem;">General study plan from your course outline</div>
+      </div>
+      <div id="mode-exam" onclick="setMode('exam')" style="flex:1;padding:1.25rem;border:2px solid var(--border);border-radius:10px;cursor:pointer;background:var(--card);">
+        <div style="font-size:1.5rem;margin-bottom:0.4rem;">📝</div>
+        <div style="font-weight:600;font-size:0.95rem;">Past Exam</div>
+        <div style="font-size:0.82rem;color:var(--ink2);margin-top:0.25rem;">Study plan tailored to your exact exam pattern</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="upload-zone" id="upload-zone">
         <input type="file" id="file-input" accept=".pdf" />
         <div class="upload-icon">📄</div>
-        <h3>Drop your syllabus PDF here</h3>
+        <h3 id="upload-zone-title">Drop your syllabus PDF here</h3>
         <p>or click to browse</p>
       </div>
       <div class="file-selected" id="file-selected">
         ✓ <span id="file-name"></span>
       </div>
-      <div class="upload-or">or paste your syllabus text</div>
+      <div class="upload-or" id="upload-or-text">or paste your syllabus text</div>
       <textarea id="syllabus-text" placeholder="Paste course outline, topics, or syllabus text here..."></textarea>
+
+      <!-- Course name field (shown for exam mode) -->
+      <div id="course-name-field" style="display:none;margin-top:1rem;">
+        <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.4rem;">Course name</label>
+        <input type="text" id="course-name-input" placeholder="e.g. Calculus II, Organic Chemistry..."
+          style="width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-size:0.9rem;font-family:DM Sans,sans-serif;background:var(--cream);outline:none;" />
+      </div>
+
       <div class="action-row">
-        <button class="btn btn-accent" id="upload-btn" onclick="uploadSyllabus()">
-          <span class="btn-text">Analyze Syllabus →</span>
+        <button class="btn btn-accent" id="upload-btn" onclick="handleUpload()">
+          <span class="btn-text" id="upload-btn-text">Analyze Syllabus →</span>
           <div class="spinner"></div>
         </button>
       </div>
@@ -554,14 +577,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // Auth check
   const token = localStorage.getItem('access_token');
   const userEmail = localStorage.getItem('user_email');
   if (!token) { window.location.href = '/login'; }
+
+
+  // Update nav
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.nav-right').innerHTML =
       '<span style="font-size:0.85rem;color:var(--ink2);">' + (userEmail || '') + '</span>' +
       '<button class="btn btn-outline" onclick="logout()">Log out</button>';
   });
+
+
 
   // State
   let state = {
@@ -624,6 +653,48 @@
     }
   });
 
+  // Mode switching
+  let uploadMode = 'syllabus';
+  let examData = null;
+
+  function setMode(mode) {
+    uploadMode = mode;
+    const syllabusCard = document.getElementById('mode-syllabus');
+    const examCard = document.getElementById('mode-exam');
+    const zoneTitle = document.getElementById('upload-zone-title');
+    const orText = document.getElementById('upload-or-text');
+    const courseField = document.getElementById('course-name-field');
+    const btnText = document.getElementById('upload-btn-text');
+    const textarea = document.getElementById('syllabus-text');
+
+    if (mode === 'syllabus') {
+      syllabusCard.style.border = '2px solid var(--accent)';
+      syllabusCard.style.background = 'var(--accent-light)';
+      examCard.style.border = '2px solid var(--border)';
+      examCard.style.background = 'var(--card)';
+      zoneTitle.textContent = 'Drop your syllabus PDF here';
+      orText.textContent = 'or paste your syllabus text';
+      textarea.placeholder = 'Paste course outline, topics, or syllabus text here...';
+      courseField.style.display = 'none';
+      btnText.textContent = 'Analyze Syllabus →';
+    } else {
+      examCard.style.border = '2px solid var(--accent)';
+      examCard.style.background = 'var(--accent-light)';
+      syllabusCard.style.border = '2px solid var(--border)';
+      syllabusCard.style.background = 'var(--card)';
+      zoneTitle.textContent = 'Drop your past exam PDF here';
+      orText.textContent = 'or paste your exam questions';
+      textarea.placeholder = 'Paste exam questions or problem sets here...';
+      courseField.style.display = 'block';
+      btnText.textContent = 'Analyze Exam →';
+    }
+  }
+
+  function handleUpload() {
+    if (uploadMode === 'syllabus') uploadSyllabus();
+    else uploadExam();
+  }
+
   // STEP 1: Upload syllabus
   async function uploadSyllabus() {
     const file = fileInput.files[0];
@@ -645,6 +716,36 @@
 
       await generateQuiz();
     } catch (e) {
+      showToast('Something went wrong. Try again.');
+      setLoading('upload-btn', false);
+    }
+  }
+
+  // STEP 1b: Upload exam
+  async function uploadExam() {
+    const file = document.getElementById('file-input').files[0];
+    const text = document.getElementById('syllabus-text').value.trim();
+    const courseName = document.getElementById('course-name-input').value.trim() || 'My Course';
+    if (!file && !text) { showToast('Please upload a PDF or paste exam text.'); return; }
+
+    setLoading('upload-btn', true);
+    try {
+      const formData = new FormData();
+      if (file) formData.append('file', file);
+      if (text) formData.append('text', text);
+      formData.append('course_name', courseName);
+
+      const res = await fetch('/study-plan/upload-exam', { method: 'POST', body: formData });
+      if (!res.ok) throw new Error('Upload failed');
+      examData = await res.json();
+
+      state.topics = examData.topics;
+      state.courseName = examData.course_name;
+      state.examMode = true;
+      state.examData = examData;
+
+      await generateQuiz();
+    } catch(e) {
       showToast('Something went wrong. Try again.');
       setLoading('upload-btn', false);
     }
@@ -768,7 +869,14 @@
     formData.append('days_available', '14');
     formData.append('hours_per_day', '2');
 
-    const res = await fetch('/study-plan/generate', {
+    let endpoint = '/study-plan/generate';
+    if (state.examMode && state.examData) {
+      endpoint = '/study-plan/generate-exam-focused';
+      formData.append('high_priority_topics', JSON.stringify(state.examData.high_priority_topics || []));
+      formData.append('exam_insights', state.examData.exam_insights || '');
+    }
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: formData,
@@ -829,37 +937,6 @@
     document.getElementById('syllabus-text').value = '';
     document.getElementById('file-selected').style.display = 'none';
     goToStep(1);
-  }
-
-  async function updateNav() {
-    let badge = '<button class="btn btn-accent" onclick="upgrade()" style="padding:0.45rem 1rem;font-size:0.82rem;">Upgrade $9/mo</button>';
-    try {
-      const res = await fetch('/billing/status', {
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      const data = await res.json();
-      if (data.is_pro) {
-        badge = '<span style="background:#2A5FD4;color:white;padding:0.2rem 0.6rem;border-radius:20px;font-size:0.75rem;font-weight:600;">PRO</span>';
-      }
-    } catch(e) {}
-    document.querySelector('.nav-right').innerHTML =
-      '<span style="font-size:0.85rem;color:var(--ink2);">' + (userEmail || '') + '</span>' +
-      badge +
-      '<button class="btn btn-outline" onclick="logout()">Log out</button>';
-  }
-  document.addEventListener('DOMContentLoaded', updateNav);
-
-  async function upgrade() {
-    try {
-      const res = await fetch('/billing/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + token }
-      });
-      const data = await res.json();
-      if (data.checkout_url) window.location.href = data.checkout_url;
-    } catch(e) {
-      showToast('Something went wrong. Try again.');
-    }
   }
 </script>
 </body>
