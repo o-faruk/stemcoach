@@ -215,3 +215,137 @@ Return JSON only (no markdown):
   ]
 }}"""
     return _parse_json(_chat(prompt, max_tokens=3000))
+
+
+def generate_tutor_question(
+    material_text: str,
+    course_name: str,
+    weak_topics: list[str],
+    question_history: list[dict],
+    difficulty: str = "medium"
+) -> dict:
+    """
+    Generates a tutor question based on uploaded material.
+    Adapts difficulty based on student performance.
+    """
+    history_summary = ""
+    if question_history:
+        history_summary = "Previous questions asked:\n" + "\n".join(
+            [f"- {q['question']} (student got: {q['result']})" for q in question_history[-5:]]
+        )
+
+    weak_summary = ", ".join(weak_topics) if weak_topics else "none identified"
+
+    prompt = f"""You are a STEM tutor conducting an oral exam session. You have the student's course material in front of you.
+
+Course: {course_name}
+Student's weak topics: {weak_summary}
+Current difficulty level: {difficulty}
+
+Course material:
+{material_text[:6000]}
+
+{history_summary}
+
+Generate ONE question to ask the student. Rules:
+- Base it directly on the material provided
+- If student has weak topics, prioritize those
+- Match the difficulty level ({difficulty})
+- For medium/hard: ask them to explain a concept or solve a problem
+- For easy: ask them to define or describe something basic
+- Don't repeat previous questions
+- Make it specific enough that you can grade their answer
+
+Return JSON only (no markdown):
+{{
+  "question": "the question to ask",
+  "topic": "which topic this tests",
+  "difficulty": "{difficulty}",
+  "ideal_answer_points": ["key point 1", "key point 2", "key point 3"],
+  "hint": "a subtle hint if they get stuck"
+}}"""
+    return _parse_json(_chat(prompt, max_tokens=1000))
+
+
+def grade_student_answer(
+    question: str,
+    ideal_points: list[str],
+    student_answer: str,
+    course_name: str,
+    topic: str,
+) -> dict:
+    """
+    Grades a student's answer and provides detailed feedback.
+    """
+    points_str = "\n".join([f"- {p}" for p in ideal_points])
+
+    prompt = f"""You are a STEM professor grading a student's oral exam answer.
+
+Course: {course_name}
+Topic: {topic}
+Question asked: {question}
+
+Key points a good answer should cover:
+{points_str}
+
+Student's answer: {student_answer}
+
+Grade their answer fairly. Be encouraging but honest. If they're partially right, acknowledge what they got right before correcting.
+
+Return JSON only (no markdown):
+{{
+  "grade": "correct" | "partial" | "incorrect",
+  "score": 0-100,
+  "feedback": "2-3 sentences of specific feedback on their answer",
+  "what_they_got_right": "what was good about their answer (empty string if nothing)",
+  "corrections": "what was wrong or missing (empty string if nothing)",
+  "full_explanation": "complete explanation of the correct answer in 3-4 sentences",
+  "encouragement": "one encouraging sentence to keep them going"
+}}"""
+    return _parse_json(_chat(prompt, max_tokens=1200))
+
+
+def chat_with_tutor(
+    message: str,
+    chat_history: list[dict],
+    material_text: str,
+    course_name: str,
+    weak_topics: list[str],
+) -> str:
+    """
+    Full conversational tutor. Has the course material as context.
+    Can answer questions, quiz the student, give feedback, and adapt.
+    """
+    weak_summary = ", ".join(weak_topics) if weak_topics else "none identified"
+    
+    history_str = ""
+    for msg in chat_history[-12:]:
+        role = "Student" if msg["role"] == "user" else "Tutor"
+        history_str += f"{role}: {msg['content']}\n\n"
+
+    prompt = f"""You are an expert STEM tutor having a conversation with a student. You have their course material in front of you.
+
+Course: {course_name}
+Student weak topics: {weak_summary}
+
+Course material:
+{material_text[:5000]}
+
+Conversation so far:
+{history_str}
+Student: {message}
+
+Respond as a knowledgeable, encouraging tutor. You can:
+- Answer their questions directly using the material
+- Ask them follow-up questions to test understanding
+- Quiz them on weak topics when appropriate
+- Give examples, analogies, or worked problems
+- Correct misconceptions clearly but kindly
+- Praise correct answers and explain wrong ones
+
+Keep responses focused and conversational. Don't be overly long. If they ask you to quiz them, ask one question at a time and wait for their answer before moving on.
+
+Tutor:"""
+    
+    response = _chat(prompt, max_tokens=800)
+    return response.strip()
